@@ -42,28 +42,28 @@ class Napkin(tuple, metaclass=_NapkinMeta):
     """
     def __init__(self, iterable=None):
         self._hash = None
-    
+
     def __eq__(self, other):
         return isinstance(other, tuple) and any(map(other.__eq__, self.expanded))
-    
+
     def __hash__(self):
         if self._hash is None:
             self._hash = hash(tuple(sorted(self.expanded_unique)))
         return self._hash
-    
+
     def __repr__(self):
         return f'{type(self).__name__}({super().__repr__()})'
-    
+
     def rotate_by(self, offset):
         return self[offset:] + self[:offset]
-    
+
     def rotate(self, n):
         return map(self.rotate_by, range(0, len(self), len(self) // n))
-    
+
     @LazyProperty
     def expanded_unique(self):
         return distinct(self.expanded)
-    
+
     def expand(self):
         return map(type(self), self.expanded_unique)
 
@@ -73,10 +73,10 @@ class OrthNapkin(Napkin):
     @staticmethod
     def reflection_of(seq):
         return sorted((seq, (seq[0], *seq[:0:-1])))
-    
+
     def rotated4(self):
         return sorted(self.rotate(4))
-    
+
     def rotated8(self):
         return sorted(self.rotate(8))
 
@@ -85,13 +85,13 @@ class HexNapkin(Napkin):
     @staticmethod
     def reflection_of(seq):
         return sorted((seq, tuple(seq[i] for i in (4, 2, 3, 1, 0, 5))))
-    
+
     def rotated2(self):
         return sorted(self.rotate(2))
-    
+
     def rotated3(self):
         return sorted(self.rotate(3))
-    
+
     def rotated6(self):
         return sorted(self.rotate(6))
 
@@ -99,10 +99,10 @@ class HexNapkin(Napkin):
 class NoSymmetry(tuple, metaclass=_NapkinMeta):
     neighborhoods = Any
     name = ['none']
-    
+
     def expand(self):
         return self,
-    
+
     expanded = property(expand)
 
 
@@ -138,7 +138,7 @@ class Rotate6Reflect(HexNapkin):
 # Orthogonal napkins
 class ReflectHorizontal(OrthNapkin):
     neighborhoods = vonNeumann, Moore
-    name = ['reflect', 'reflect_horizontal']
+    name = ['reflect_horizontal', 'reflect']
     @LazyProperty
     def expanded(self):
         return self.reflection_of(tuple(self))
@@ -177,12 +177,12 @@ class Permute(Napkin):
     neighborhoods = Any
     RECENTS = {}
     HASHES = {}
-    
+
     def __hash__(self):
         if self._hash is None:
             self._hash = self.HASHES[tuple(sorted(self))]
         return self._hash
-    
+
     @LazyProperty
     def expanded(self):
         t = tuple(sorted(self))
@@ -192,12 +192,12 @@ class Permute(Napkin):
         self.RECENTS[t] = ret = list(permutations(t))
         self.HASHES[t] = self._hash = hash(tuple(ret))
         return ret
-    
+
     @classmethod
     def clear(cls):
         cls.RECENTS.clear()
         cls.HASHES.clear()
-    
+
     @staticmethod
     def special(values, length):
         """
@@ -225,7 +225,7 @@ class Permute(Napkin):
           (val.set(idx) if isinstance(val, InlineBinding) else val, next(filler) if num is None else int(num))
           for idx, (val, num) in enumerate(values, 1)
         ))
-    
+
     @staticmethod
     def _fill(length, tally, empties):
         """Only in its own function to be able to raise error on 0"""
@@ -239,7 +239,7 @@ class _AccumulativeContainer(list):
     def __init__(self, it):
         for thing, count in it:
             self.append((thing, 1 if count is None else count))
-    
+
     def __iter__(self):
         return (i.give() if isinstance(i, InlineBinding) else i for k, v in super().__iter__() for i in [k]*v)
 
